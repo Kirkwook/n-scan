@@ -9,4 +9,11 @@ def get_IP(hostname):
     except socket.error as e:
         print(f"Error: {e}")
         sys.exit(1)
-#Test
+
+
+def main():
+    print(get_IP("openvas.infosec.uwec.edu"))
+
+
+if __name__ == "__main__":
+    main()

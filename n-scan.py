@@ -9,3 +9,4 @@ def get_IP(hostname):
     except socket.error as e:
         print(f"Error: {e}")
         sys.exit(1)
+#Test

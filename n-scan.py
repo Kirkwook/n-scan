@@ -3,7 +3,7 @@ import sys
 import argparse
 
 # Retrieves IP address based on the provided hostname
-def get_IP(hostname):
+def get_ip(hostname):
     try:
         ip_address = socket.gethostbyname(hostname)
         return ip_address
@@ -20,10 +20,22 @@ def get_hostname(ip_addr):
         print(f"Error: {e}")
         sys.exit(1)
 
+#  Checks input and passes the output to the correct retrieval method
+def get_host_ip(ip_host):
+    if(ip_host[0].isalpha() == True):
+        ip = get_ip(ip_host)
+        hostname = ip_host
+    else:
+        hostname = get_hostname()
+        ip = ip_host
+    result = [hostname, ip]
+    return result
+
 def main():
     ip_host = input("Enter the target hostname or IP address:\n")
-    print(get_IP(ip_host))
-
+    result = get_host_ip(ip_host)
+    print(result[0])
+    print(result[1])
 
 if __name__ == "__main__":
     main()

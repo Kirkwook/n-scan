@@ -26,7 +26,7 @@ def get_host_ip(ip_host):
         ip = get_ip(ip_host)
         hostname = ip_host
     else:
-        hostname = get_hostname()
+        hostname = get_hostname(ip_host)
         ip = ip_host
     result = [hostname, ip]
     return result

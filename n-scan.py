@@ -35,7 +35,7 @@ def scan_ports(ip_address, ports):
     open_ports = []
     for port in ports:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
+        sock.settimeout(0.5)
         result = sock.connect_ex((ip_address, port))
         if result == 0:
             open_ports.append(port)
@@ -55,7 +55,8 @@ def main():
     print(result[0])
     print(result[1])
     
-    ports_to_scan = range(1, 1025)
+    #ports_to_scan = range(1, 1025)
+    ports_to_scan = range(1, 25)
 
     open_ports = scan_ports(result[1], ports_to_scan)
 

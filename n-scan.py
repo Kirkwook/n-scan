@@ -1,6 +1,8 @@
+
 import socket
 import sys
 import argparse
+from tqdm import tqdm
 
 # Retrieves IP address based on the provided hostname
 def get_ip(hostname):
@@ -33,9 +35,9 @@ def get_host_ip(ip_host):
 
 def scan_ports(ip_address, ports):
     open_ports = []
-    for port in ports:
+    for port in tqdm(ports):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
+        sock.settimeout(0.1)
         result = sock.connect_ex((ip_address, port))
         if result == 0:
             open_ports.append(port)
@@ -54,16 +56,18 @@ def main():
     result = get_host_ip(ip_host)
     print(result[0])
     print(result[1])
-    
-    ports_to_scan = range(1, 1025)
 
+    ports_to_scan = range(1, 1025)
     open_ports = scan_ports(result[1], ports_to_scan)
+    ports_list = []
 
     if open_ports:
         print("Open ports:")
         for port in open_ports:
             service_name = get_service_name(port)
             print(f"Port {port}: {service_name}")
+            found_port = [port, service_name]
+            ports_list.append(found_port)
     else:
         print("No open ports found.")
 

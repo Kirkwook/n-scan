@@ -2,7 +2,6 @@
 import socket
 import sys
 import argparse
-from tqdm import tqdm
 
 # Retrieves IP address based on the provided hostname
 def get_ip(hostname):
@@ -56,8 +55,9 @@ def main():
     result = get_host_ip(ip_host)
     print(result[0])
     print(result[1])
-
+    
     ports_to_scan = range(1, 1025)
+
     open_ports = scan_ports(result[1], ports_to_scan)
     ports_list = []
 

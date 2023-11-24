@@ -1,7 +1,7 @@
-
 import socket
 import sys
 import argparse
+from tqdm import tqdm
 
 # Retrieves IP address based on the provided hostname
 def get_ip(hostname):

@@ -1,6 +1,7 @@
 import socket
 import sys
 import argparse
+import ping3
 from tqdm import tqdm
 
 # Retrieves IP address based on the provided hostname
@@ -49,12 +50,25 @@ def get_service_name(port):
         return service_name
     except socket.error:
         return "Unknown"
+    
+def ping_host(host):
+    try:
+        ping = ping3.Ping(timeout=2)  # Set timeout value (in seconds)
+        response = ping.ping(host)
+        if response is not None:
+            print(f"Ping to {host} successful. Latency: {response} ms")
+        else:
+            print(f"Ping to {host} failed.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 def main():
     ip_host = input("Enter the target hostname or IP address:\n")
     result = get_host_ip(ip_host)
     print(result[0])
     print(result[1])
+    
+    ping_host(result[1])
     
     ports_to_scan = range(1, 1025)
 

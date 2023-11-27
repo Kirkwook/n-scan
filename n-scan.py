@@ -53,10 +53,9 @@ def get_service_name(port):
     
 def ping_host(host):
     try:
-        ping = ping3.Ping(timeout=2)  # Set timeout value (in seconds)
-        response = ping.ping(host)
-        if response is not None:
-            print(f"Ping to {host} successful. Latency: {response} ms")
+        ping = ping3.ping(host, timeout=2)  # Set timeout value (in seconds)
+        if ping is not None:
+            print(f"Ping to {host} successful. Latency: {ping} ms")
         else:
             print(f"Ping to {host} failed.")
     except Exception as e:

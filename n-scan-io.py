@@ -67,41 +67,71 @@ def main():
     file_object = open(file_path, "r")
     file_output = open("output.txt", "w")
 
+    filter_list = []
+    protocol_name = ""
+    while protocol_name != "end":
+        protocol_name = input("Enter protocols to filter for (type end to end):\n")
+        if protocol_name != "end":
+            filter_list.append(protocol_name)
+
+    isExclusive = "temp"
+    while isExclusive == "temp":
+        isExclusive = input("Would you like exclusive port reporting? (Y/N):\n")
+
     file_output.write("N-SCAN NETWORK SCANNER - JOB SOURCE FILE: " + file_path + "\n")
     for lines in file_object:
-        file_output.write("\n")
-        file_output.write("----------------------------------------------------------\n")
+        file_contents = []
+        file_contents.append("\n")
+        file_contents.append("----------------------------------------------------------\n")
         line_count += 1
-        file_output.write("Scanning for line " + str(line_count) + " content: " + lines.strip() + "\n")
+        file_contents.append("Scanning for line " + str(line_count) + " content: " + lines.strip() + "\n")
         print("Network scan of: " + lines.strip())
 
         ip_host = lines.strip()
         result = get_host_ip(ip_host)
-        file_output.write("Hostname: " + result[0] + "\n")
-        file_output.write("IP Address: " + result[1] + "\n")
+        file_contents.append("Hostname: " + result[0] + "\n")
+        file_contents.append("IP Address: " + result[1] + "\n")
 
         ping_time = ping_host(result[1])
         if ping_time >= 0:
-            file_output.write("Ping response time: " + str(ping_time) + " ms\n")
+            file_contents.append("Ping response time: " + str(ping_time) + " ms\n")
         else:
-            file_output.write("Ping response time was unsuccessful.\n")
+            file_contents.append("Ping response time was unsuccessful.\n")
 
         ports_to_scan = range(1, 1025)
         open_ports = scan_ports(result[1], ports_to_scan)
-        file_output.write("Open ports found: " + str(len(open_ports)) + "\n")
+        file_contents.append("Open ports found: " + str(len(open_ports)) + "\n")
 
         ports_list = []
         if open_ports:
             for port in open_ports:
                 service_name = get_service_name(port)
                 found_port = [port, service_name]
-                file_output.write("Port: " + str(found_port[0]) + ", Service: " + found_port[1] +"\n")
-                ports_list.append(found_port)
+                if isExclusive == "Y" and len(filter_list) > 0:
+                    for protocol in filter_list:
+                        if found_port[1] == protocol:
+                            file_contents.append("Port: " + str(found_port[0]) + ", Service: " + found_port[1] +"\n")
+                            ports_list.append(found_port)
+                else:
+                    file_contents.append("Port: " + str(found_port[0]) + ", Service: " + found_port[1] +"\n")
+                    ports_list.append(found_port)
         else:
             print("No open ports found.")
 
-        file_output.write("----------------------------------------------------------\n")
-    
+        isPrinted = 0
+        if len(filter_list) != 0:
+            for port in ports_list:
+                for protocol in filter_list:
+                    if port[1] == protocol and isPrinted == 0:
+                        for row in file_contents:
+                            file_output.write(row)
+                        file_output.write("----------------------------------------------------------\n")
+                        isPrinted = 1
+        else:
+            for row in file_contents:
+                file_output.write(row)
+                file_output.write("----------------------------------------------------------\n")
+
     file_object.close()
     file_output.close()
 

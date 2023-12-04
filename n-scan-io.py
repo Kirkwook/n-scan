@@ -30,7 +30,7 @@ def get_host_ip(ip_host):
     else:
         hostname = get_hostname(ip_host)
         ip = ip_host
-    result = [hostname, ip]
+    result = [hostname, ip, hostname]
     return result
 
 def scan_ports(ip_address, ports):
@@ -91,6 +91,7 @@ def main():
         result = get_host_ip(ip_host)
         file_contents.append("Hostname: " + result[0] + "\n")
         file_contents.append("IP Address: " + result[1] + "\n")
+        file_contents.append("MAC Address: " + result[2] + "\n")
 
         ping_time = ping_host(result[1])
         if ping_time >= 0:

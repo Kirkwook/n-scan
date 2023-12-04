@@ -1,2 +1,1 @@
 openvas.infosec.uwec.edu
-172.26.0.50

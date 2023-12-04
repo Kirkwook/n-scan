@@ -2,6 +2,7 @@ import socket
 import sys
 import argparse
 import ping3
+from scapy.all import sr1, IP, TCP, ARP, Ether, srp
 from tqdm import tqdm
 
 # Retrieves IP address based on the provided hostname
@@ -61,6 +62,34 @@ def ping_host(host):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+def test_tcp_port(ip, port, timeout=1):
+    # Crafting a TCP SYN packet
+    packet = IP(dst=ip) / TCP(dport=port, flags="S")
+
+    # Sending the packet and waiting for a response
+    response = sr1(packet, timeout=timeout, verbose=False)
+
+    # Checking the response
+    if response and response.haslayer(TCP):
+        if response[TCP].flags == 0x12:  # TCP SYN-ACK flag
+            return True
+        elif response[TCP].flags == 0x14:  # TCP RST-ACK flag
+            return False
+    return False
+
+def get_mac_address(ip_address):
+    # Create an ARP request packet
+    arp_request = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ip_address)
+
+    # Send the packet and capture the response
+    result = srp(arp_request, timeout=3, verbose=False)[0]
+
+    # Extract the MAC address from the response
+    if result:
+        return result[0][1].hwsrc
+    else:
+        return None
+
 def main():
     line_count = 0
     file_path = input("Enter the filepath of the source file:\n")
@@ -70,7 +99,7 @@ def main():
     filter_list = []
     protocol_name = ""
     while protocol_name != "end":
-        protocol_name = input("Enter protocols to filter for (type end to end):\n")
+        protocol_name = input("Enter protocols to filter for (type end to exit):\n")
         if protocol_name != "end":
             filter_list.append(protocol_name)
 
@@ -101,6 +130,13 @@ def main():
         ports_to_scan = range(1, 1025)
         open_ports = scan_ports(result[1], ports_to_scan)
         file_contents.append("Open ports found: " + str(len(open_ports)) + "\n")
+
+        for port in open_ports:
+            is_open = test_tcp_port(result[1], port)
+            if (is_open):
+                file_contents.append("Test packet to port " + str(port) + " returned successfully."+"\n")
+            else:
+                file_contents.append("Test packet to port " + str(port) + " failed."+"\n")
 
         ports_list = []
         if open_ports:

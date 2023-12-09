@@ -4,6 +4,7 @@ import argparse
 import ping3
 from scapy.all import sr1, IP, TCP, ARP, Ether, srp
 from tqdm import tqdm
+import getmac
 
 # Retrieves IP address based on the provided hostname
 def get_ip(hostname):
@@ -11,8 +12,9 @@ def get_ip(hostname):
         ip_address = socket.gethostbyname(hostname)
         return ip_address
     except socket.error as e:
-        print(f"Error: {e}")
-        sys.exit(1)
+        print("Hostname " + hostname + " not found.")
+        return 0
+        
 
 # Retrieves hostname based on the provided IP address
 def get_hostname(ip_addr):
@@ -20,8 +22,8 @@ def get_hostname(ip_addr):
         hostname = socket.gethostbyaddr(ip_addr)
         return hostname[0]
     except socket.error as e:
-        print(f"Error: {e}")
-        sys.exit(1)
+        print("Hostname " + hostname + " not found.")
+        return 0
 
 #  Checks input and passes the output to the correct retrieval method
 def get_host_ip(ip_host):
@@ -31,9 +33,12 @@ def get_host_ip(ip_host):
     else:
         hostname = get_hostname(ip_host)
         ip = ip_host
-    mac = get_mac_address(ip)
-    result = [hostname, ip, mac]
-    return result
+    if ip != 0 and hostname != 0:
+        mac = get_mac(ip)
+        result = [hostname, ip, mac]
+        return result
+    else: 
+        return 0
 
 def scan_ports(ip_address, ports):
     open_ports = []
@@ -78,18 +83,21 @@ def test_tcp_port(ip, port, timeout=1):
             return False
     return False
 
-def get_mac_address(ip_address):
-    # Create an ARP request packet
-    arp_request = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ip_address)
 
-    # Send the packet and capture the response
-    result = srp(arp_request, timeout=3, verbose=False)[0]
-
-    # Extract the MAC address from the response
-    if result:
-        return result[0][1].hwsrc
-    else:
-        return None
+def get_mac(ip):
+    try:
+        arp_request = ARP(pdst=ip)
+        broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
+        arp_request_broadcast = broadcast / arp_request
+        answered_list = srp(arp_request_broadcast, timeout=5, verbose=False)[0]
+        
+        if answered_list:
+            return answered_list[0][1].hwsrc
+        else:
+            return "Unknown"
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return "Error"
 
 def main():
     line_count = 0
@@ -119,56 +127,70 @@ def main():
 
         ip_host = lines.strip()
         result = get_host_ip(ip_host)
-        file_contents.append("Hostname: " + result[0] + "\n")
-        file_contents.append("IP Address: " + result[1] + "\n")
-        file_contents.append("MAC Address: " + result[2] + "\n")
+        if result != 0:
+            file_contents.append("Hostname: " + result[0] + "\n")
+            file_contents.append("IP Address: " + result[1] + "\n")
+            file_contents.append("MAC Address: " + result[2] + "\n")
 
-        ping_time = ping_host(result[1])
-        if ping_time >= 0:
-            file_contents.append("Ping response time: " + str(ping_time) + " ms\n")
-        else:
-            file_contents.append("Ping response time was unsuccessful.\n")
-
-        ports_to_scan = range(1, 1025)
-        open_ports = scan_ports(result[1], ports_to_scan)
-        file_contents.append("Open ports found: " + str(len(open_ports)) + "\n")
-
-        for port in open_ports:
-            is_open = test_tcp_port(result[1], port)
-            if (is_open):
-                file_contents.append("Test packet to port " + str(port) + " returned successfully."+"\n")
+            ping_time = ping_host(result[1])
+            if ping_time >= 0:
+                file_contents.append("Ping response time: " + str(ping_time) + " ms\n")
             else:
-                file_contents.append("Test packet to port " + str(port) + " failed."+"\n")
+                file_contents.append("Ping response time was unsuccessful.\n")
 
-        ports_list = []
-        if open_ports:
-            for port in open_ports:
-                service_name = get_service_name(port)
-                found_port = [port, service_name]
-                if isExclusive == "Y" and len(filter_list) > 0:
+            ports_to_scan = range(1, 1025)
+            open_ports = scan_ports(result[1], ports_to_scan)
+            file_contents.append("Open ports found: " + str(len(open_ports)) + "\n")
+
+            # for port in open_ports:
+            #     is_open = test_tcp_port(result[1], port)
+            #     if (is_open):
+            #         file_contents.append("Test packet to port " + str(port) + " returned successfully."+"\n")
+            #     else:
+            #         file_contents.append("Test packet to port " + str(port) + " failed."+"\n")
+
+            ports_list = []
+            if open_ports:
+                for port in open_ports:
+                    service_name = get_service_name(port)
+                    found_port = [port, service_name]
+                    if isExclusive == "Y" and len(filter_list) > 0:
+                        for protocol in filter_list:
+                            if found_port[1] == protocol:
+                                file_contents.append("Port: " + str(found_port[0]) + ", Service: " + found_port[1] + ", Test Packet: ")
+                                is_open = test_tcp_port(result[1], port)
+                                if (is_open):
+                                    file_contents.append("OK\n")
+                                else:
+                                    file_contents.append("FAILED\n")
+                                ports_list.append(found_port)
+                    else:
+                        file_contents.append("Port: " + str(found_port[0]) + ", Service: " + found_port[1] + ", Test Packet: ")
+                        is_open = test_tcp_port(result[1], port)
+                        if (is_open):
+                            file_contents.append("OK\n")
+                        else:
+                            file_contents.append("FAILED\n")
+                        ports_list.append(found_port)
+            else:
+                print("No open ports found.")
+
+            isPrinted = 0
+            if len(filter_list) != 0:
+                for port in ports_list:
                     for protocol in filter_list:
-                        if found_port[1] == protocol:
-                            file_contents.append("Port: " + str(found_port[0]) + ", Service: " + found_port[1] +"\n")
-                            ports_list.append(found_port)
-                else:
-                    file_contents.append("Port: " + str(found_port[0]) + ", Service: " + found_port[1] +"\n")
-                    ports_list.append(found_port)
-        else:
-            print("No open ports found.")
-
-        isPrinted = 0
-        if len(filter_list) != 0:
-            for port in ports_list:
-                for protocol in filter_list:
-                    if port[1] == protocol and isPrinted == 0:
-                        for row in file_contents:
-                            file_output.write(row)
-                        file_output.write("----------------------------------------------------------\n")
-                        isPrinted = 1
-        else:
-            for row in file_contents:
-                file_output.write(row)
+                        if port[1] == protocol and isPrinted == 0:
+                            for row in file_contents:
+                                file_output.write(row)
+                            file_output.write("----------------------------------------------------------\n")
+                            isPrinted = 1
+            else:
+                for row in file_contents:
+                    file_output.write(row)
                 file_output.write("----------------------------------------------------------\n")
+        else:
+            print("Hostname or IP not found. Excluded from output.")
+
 
     file_object.close()
     file_output.close()

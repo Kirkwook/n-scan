@@ -1,0 +1,12 @@
+N-SCAN NETWORK SCANNER - JOB SOURCE FILE: input.txt
+
+----------------------------------------------------------
+Scanning for line 2 content: openvas.infosec.uwec.edu
+Hostname: openvas.infosec.uwec.edu
+IP Address: 172.26.0.50
+MAC Address: Unknown
+Ping response time: 0.0400540828704834 ms
+Open ports found: 2
+Port: 22, Service: ssh, Test Packet: OK
+Port: 80, Service: http, Test Packet: OK
+----------------------------------------------------------

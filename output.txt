@@ -1,12 +1,43 @@
-N-SCAN NETWORK SCANNER - JOB SOURCE FILE: input.txt
+N-SCAN NETWORK SCANNER - JOB SOURCE FILE: input1.txt
 
 ----------------------------------------------------------
-Scanning for line 2 content: openvas.infosec.uwec.edu
-Hostname: openvas.infosec.uwec.edu
-IP Address: 172.26.0.50
-MAC Address: Unknown
-Ping response time: 0.0400540828704834 ms
-Open ports found: 2
+Scanning for line 1 content: beanstalk.cloud
+Hostname: beanstalk.cloud
+IP Address: 192.168.1.114
+MAC Address: 58:11:22:4d:64:2e
+Ping response time: 0.008076667785644531 ms
+Open ports found: 5
+Port: 135, Service: epmap, Test Packet: OK
+Port: 139, Service: netbios-ssn, Test Packet: OK
+Port: 445, Service: microsoft-ds, Test Packet: OK
+Port: 902, Service: Unknown, Test Packet: OK
+Port: 912, Service: Unknown, Test Packet: OK
+----------------------------------------------------------
+
+----------------------------------------------------------
+Scanning for line 2 content: blackbox.lan
+Hostname: blackbox.lan
+IP Address: 192.168.1.9
+MAC Address: dc:a6:32:65:8d:08
+Ping response time: 0.008098363876342773 ms
+Open ports found: 7
+Port: 22, Service: ssh, Test Packet: FAILED
+Port: 443, Service: https, Test Packet: OK
+Port: 914, Service: Unknown, Test Packet: FAILED
+Port: 915, Service: Unknown, Test Packet: OK
+Port: 916, Service: Unknown, Test Packet: OK
+Port: 917, Service: Unknown, Test Packet: OK
+Port: 943, Service: Unknown, Test Packet: OK
+----------------------------------------------------------
+
+----------------------------------------------------------
+Scanning for line 3 content: tinybox.lan
+Hostname: tinybox.lan
+IP Address: 192.168.1.200
+MAC Address: dc:a6:32:db:f4:6a
+Ping response time: 0.004146575927734375 ms
+Open ports found: 3
 Port: 22, Service: ssh, Test Packet: OK
+Port: 53, Service: domain, Test Packet: OK
 Port: 80, Service: http, Test Packet: OK
 ----------------------------------------------------------

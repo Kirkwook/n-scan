@@ -4,7 +4,6 @@ import argparse
 import ping3
 from scapy.all import sr1, IP, TCP, ARP, Ether, srp
 from tqdm import tqdm
-import getmac
 
 # Retrieves IP address based on the provided hostname
 def get_ip(hostname):
@@ -87,12 +86,13 @@ def test_tcp_port(ip, port, timeout=1):
 def get_mac(ip):
     try:
         arp_request = ARP(pdst=ip)
-        broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
-        arp_request_broadcast = broadcast / arp_request
-        answered_list = srp(arp_request_broadcast, timeout=5, verbose=False)[0]
-        
-        if answered_list:
-            return answered_list[0][1].hwsrc
+        ether = Ether(dst="ff:ff:ff:ff:ff:ff")
+        packet = ether / arp_request
+        result = srp(packet, timeout=3, verbose=0)[0]
+
+
+        if result:
+            return result[0][1].hwsrc
         else:
             return "Unknown"
     except Exception as e:
